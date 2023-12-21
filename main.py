@@ -122,8 +122,7 @@ class TimeTracker(QWidget):
         # Обновить время для текущего процесса
         self.current_process = None
 
-        with open(self.path_write, "r+") as f:
-            f.truncate(0)
+        with open(self.path_write, "w") as f:
             f.write(f"Общее время: {self.total_time}\n\n")
             f.write(f"Время в приложениях:\n")
             for app, time in self.processes.items():
