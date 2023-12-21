@@ -1,10 +1,12 @@
+import datetime
 import subprocess
 import sys
 import time
 
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QRadioButton, QTimeEdit, QListWidget,
-                             QVBoxLayout, QHBoxLayout, QMessageBox, QLabel)
+                             QVBoxLayout, QHBoxLayout, QMessageBox, QLabel, QScrollBar, QTableWidget, QHeaderView,
+                             QAbstractItemView, QTableWidgetItem, QDialog)
 from PyQt6.QtCore import QTimer, QTime
 
 
@@ -34,7 +36,7 @@ class TimeTracker(QWidget):
         super().__init__()
         # заголовок, размер и положение окна
         self.setWindowTitle('Хронометраж работы')
-        self.resize(400, 500)
+        self.setFixedSize(600, 600)
         # Общее время
         self.label_total_time = QLabel("Прошло времени: 00:00:00")
         self.label_total_time.setFixedSize(200, 20)
@@ -46,11 +48,19 @@ class TimeTracker(QWidget):
         self.all_time_radio = QRadioButton('Без лимита')
         self.timer_radio = QRadioButton('С лимитом')
         self.time_edit = QTimeEdit()
-        self.process_list = QListWidget()
+        self.process_table = QTableWidget()
+        self.process_table.setColumnCount(2)
+        self.process_table.setHorizontalHeaderLabels(["Приложение", "Время"])
+        self.process_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch)
+        self.process_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows)
+        self.process_table.setSelectionMode(
+            QAbstractItemView.SelectionMode.SingleSelection)
+        self.process_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.pause_button.setEnabled(False)
         self.time_edit.setEnabled(False)
         self.timer = QTimer()
-        self.timer.timeout.connect(self.update)
         self.processes = {}  # процессы и время
         self.current_process = None
         self.start_time = None
@@ -82,14 +92,15 @@ class TimeTracker(QWidget):
         self.left_layout.addWidget(self.all_time_radio)
         self.left_layout.addWidget(self.timer_radio)
         self.left_layout.addWidget(self.time_edit)
-        self.right_layout.addWidget(self.process_list)
+        self.right_layout.addWidget(self.process_table)
         self.main_layout.addLayout(self.left_layout)
         self.main_layout.addLayout(self.right_layout)
         # главный макет для окна
         self.setLayout(self.main_layout)
         self.show()
 
-    # Метод для обработки переключения режима работы
+        # Метод для обработки переключения режима работы
+
     def set_mode(self):
         radio = self.sender()
         if radio.isChecked():
@@ -118,11 +129,11 @@ class TimeTracker(QWidget):
         self.timer_radio.setEnabled(False)
         self.all_time_radio.setEnabled(False)
         self.time_edit.setEnabled(False)
-        message('Считывание процессов начато', icon_path=None, title="Успешно")
-        self.timer.start(1000)
         self.pause_button.setEnabled(True)
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
+        self.timer.start(1000)
+        message('Считывание процессов начато', icon_path=None, title="Успешно")
 
     def pause(self):
         self.pause_button.setEnabled(False)
@@ -146,11 +157,23 @@ class TimeTracker(QWidget):
         self.total_time = 0
         self.report()
         self.processes = {}
+        self.process_table.clear()
+        self.process_table.setRowCount(0)
+        self.process_table.setColumnCount(0)
 
         # Выводим сообщение о завершении считывания процессов
         message('Считывание процессов завершено', icon_path=None, title="Успешно")
 
-    # Метод для обновления статистики
+    def add_to_table(self):
+        self.process_table.setRowCount(len(self.processes))
+        row = 0
+        for app, time in self.processes.items():
+            app_item = QTableWidgetItem(app)
+            time_item = QTableWidgetItem(str(datetime.timedelta(seconds=time)))
+            self.process_table.setItem(row, 0, app_item)
+            self.process_table.setItem(row, 1, time_item)
+            row += 1
+
     def add_time_stats(self, app_name):
         if app_name != self.current_process:
             print(self.processes)
@@ -169,6 +192,12 @@ class TimeTracker(QWidget):
         else:
             self.total_time += 1
         self.label_total_time.setText("Прошло времени: " + (time.strftime("%H:%M:%S", time.gmtime(self.total_time))))
+        self.add_to_table()
+
+    def show_popup(self):
+        self.popup = QDialog(self)
+        self.popup.setWindowTitle("Всплывающее окно")
+        self.popup.show()
 
 
 app = QApplication(sys.argv)
