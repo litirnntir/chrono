@@ -67,6 +67,7 @@ class TimeTracker(QWidget):
         self.start_button.clicked.connect(self.start)
         self.pause_button.clicked.connect(self.pause)
         self.stop_button.clicked.connect(self.stop)
+        self.report_button.clicked.connect(self.report)
         # макеты для размещения виджетов
         self.left_layout = QVBoxLayout()
         self.right_layout = QVBoxLayout()
@@ -87,16 +88,22 @@ class TimeTracker(QWidget):
         # Показываем окно
         self.show()
 
+    def report(self):
+        print("Статистика отправлена в файл")
+        print("Статистика: ", self.processes)
+
     def start(self):
         message('Считывание процессов начато', icon_path=None, title="Успешно")
         self.timer.start(1000)
         self.pause_button.setEnabled(True)
         self.start_button.setEnabled(False)
+        self.stop_button.setEnabled(True)
 
     def pause(self):
         # Деактивируем кнопку паузы и активируем кнопку старт
         self.pause_button.setEnabled(False)
         self.start_button.setEnabled(True)
+        self.stop_button.setEnabled(True)
         # TODO: Обновить время для текущего процесса
         # self.update_time()
         # Останавливаем таймер
@@ -112,7 +119,7 @@ class TimeTracker(QWidget):
         self.start_button.setEnabled(True)
         # Останавливаем таймер
         self.timer.stop()
-        #TODO: Обновить время для текущего процесса
+        # TODO: Обновить время для текущего процесса
         # self.update_time()
 
         # Сбрасываем текущий процесс и время начала
@@ -120,7 +127,7 @@ class TimeTracker(QWidget):
         self.start_time = None
         # Сбрасываем общее время
         self.total_time = 0
-        #TODO: Отправлять статистику в файл
+        # TODO: Отправлять статистику в файл
 
         # Очищаем статистику
         self.processes = {}
