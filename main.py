@@ -149,6 +149,8 @@ class TimeTracker(QWidget):
 
     # Метод для обработки нажатия на кнопку Стоп
     def stop(self):
+        self.timer_radio.setEnabled(True)
+        self.all_time_radio.setEnabled(True)
         # Деактивируем кнопки паузы и стоп и активируем кнопку старт
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
