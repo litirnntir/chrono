@@ -4,7 +4,7 @@ from setuptools import setup
 
 APP_NAME = 'Chrono'
 APP = ['main.py']
-DATA_FILES = []
+DATA_FILES = ['background.png']
 OPTIONS = {
     'plist': {
         'CFBundleName': APP_NAME,
