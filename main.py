@@ -123,6 +123,7 @@ class TimeTracker(QWidget):
     def report(self):
         # Обновить время для текущего процесса
         self.current_process = None
+        self.processes["Общее время"] = self.total_time
 
         print("Статистика отправлена в файл")
         print("Статистика: ", self.processes)
