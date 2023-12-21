@@ -1,9 +1,7 @@
-# Импортируем необходимые модули
-import subprocess
 import sys
-from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QRadioButton, QTimeEdit, QListWidget,
+from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QRadioButton, QTimeEdit, QListWidget,
                              QVBoxLayout, QHBoxLayout)
-from PyQt6.QtCore import QTimer, QTime
+from PyQt6.QtCore import QTimer
 
 
 class TimeTracker(QWidget):
