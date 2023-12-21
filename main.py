@@ -1,7 +1,19 @@
+import subprocess
 import sys
 from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QRadioButton, QTimeEdit, QListWidget,
                              QVBoxLayout, QHBoxLayout)
-from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import QTimer, QTime
+
+
+def get_active_app_name():
+    script = """
+    tell application "System Events"
+        set frontApp to name of first application process whose frontmost is true
+    end tell
+    return frontApp
+    """
+    output = subprocess.check_output(["osascript", "-e", script])
+    return output.strip().decode("utf-8")
 
 
 class TimeTracker(QWidget):
@@ -24,6 +36,7 @@ class TimeTracker(QWidget):
         self.time_edit.setEnabled(False)
         # таймер для отслеживания времени
         self.timer = QTimer()
+        self.timer.timeout.connect(self.update)
         # словарь для хранения процессов и времени
         self.processes = {}
         # переменная для хранения текущего процесса
@@ -39,7 +52,8 @@ class TimeTracker(QWidget):
         # переменная для хранения общего времени
         self.total_time = 0
         # сигналы и слоты для обработки событий
-
+        self.start_button.clicked.connect(self.start)
+        self.pause_button.clicked.connect(self.pause)
         # макеты для размещения виджетов
         self.left_layout = QVBoxLayout()
         self.right_layout = QVBoxLayout()
@@ -59,6 +73,35 @@ class TimeTracker(QWidget):
         self.setLayout(self.main_layout)
         # Показываем окно
         self.show()
+
+    def start(self):
+        self.timer.start(1000)
+        self.pause_button.setEnabled(True)
+        self.start_button.setEnabled(False)
+
+    def pause(self):
+        # Деактивируем кнопку паузы и активируем кнопку старт
+        self.pause_button.setEnabled(False)
+        self.start_button.setEnabled(True)
+        # Останавливаем таймер
+        self.timer.stop()
+        # Запоминаем время паузы
+        self.pause_time = QTime.currentTime()
+
+    def time_apps_list(self, app_name):
+        if app_name != self.current_process:
+            print(self.processes)
+        # Если приложение уже есть в словаре, то увеличиваем его время на 1 секунду
+        if app_name in self.processes:
+            self.processes[app_name] += 1
+        # Иначе добавляем приложение в словарь с начальным временем 1 секунда
+        else:
+            self.processes[app_name] = 1
+
+    def update(self):
+        active_process = get_active_app_name()
+        self.time_apps_list(active_process)
+        self.current_process = get_active_app_name()
 
 
 app = QApplication(sys.argv)
