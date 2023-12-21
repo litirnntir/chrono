@@ -163,9 +163,7 @@ class TimeTracker(QWidget):
         self.start_time = None
         self.total_time = 0
         self.processes = {}
-        self.process_table.clear()
-        self.process_table.setRowCount(0)
-        self.process_table.setColumnCount(0)
+        self.clear_table()
 
         # Выводим сообщение о завершении считывания процессов
         message('Считывание процессов завершено', icon_path=None, title="Успешно")
@@ -179,6 +177,13 @@ class TimeTracker(QWidget):
             self.process_table.setItem(row, 0, app_item)
             self.process_table.setItem(row, 1, time_item)
             row += 1
+
+    def clear_table(self):
+        # Получаем количество строк в таблице
+        row_count = self.process_table.rowCount()
+        # Удаляем каждую строку, начиная с последней
+        for i in range(row_count - 1, -1, -1):
+            self.process_table.removeRow(i)
 
     def add_time_stats(self, app_name):
         if app_name != self.current_process:
