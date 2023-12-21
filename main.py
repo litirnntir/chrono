@@ -40,6 +40,8 @@ class TimeTracker(QWidget):
         # Общее время
         self.label_total_time = QLabel("Прошло времени: 00:00:00")
         self.label_total_time.setFixedSize(200, 20)
+        # Путь до файла
+        self.path_write = "stats.txt"
         # виджеты для кнопок, переключателей, таймера и списка
         self.start_button = QPushButton('Старт')
         self.pause_button = QPushButton('Пауза')
@@ -120,7 +122,8 @@ class TimeTracker(QWidget):
         # Обновить время для текущего процесса
         self.current_process = None
 
-        with open("time_stats.txt", "w") as f:
+        with open(self.path_write, "r+") as f:
+            f.truncate(0)
             f.write(f"Общее время: {self.total_time}\n\n")
             f.write(f"Время в приложениях:\n")
             for app, time in self.processes.items():
@@ -149,6 +152,7 @@ class TimeTracker(QWidget):
 
     # Метод для обработки нажатия на кнопку Стоп
     def stop(self):
+        self.report()
         self.timer_radio.setEnabled(True)
         self.all_time_radio.setEnabled(True)
         self.pause_button.setEnabled(False)
@@ -159,7 +163,6 @@ class TimeTracker(QWidget):
         self.current_process = None
         self.start_time = None
         self.total_time = 0
-        self.report()
         self.processes = {}
         self.process_table.clear()
         self.process_table.setRowCount(0)
@@ -193,8 +196,7 @@ class TimeTracker(QWidget):
         self.current_process = get_active_app_name()
         if self.mode == 'С лимитом' and self.total_time >= self.limit:
             self.stop()
-        else:
-            self.total_time += 1
+        self.total_time += 1
         self.label_total_time.setText("Прошло времени: " + (time.strftime("%H:%M:%S", time.gmtime(self.total_time))))
 
 
