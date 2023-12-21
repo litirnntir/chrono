@@ -4,9 +4,9 @@ import sys
 import time
 
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QRadioButton, QTimeEdit, QListWidget,
-                             QVBoxLayout, QHBoxLayout, QMessageBox, QLabel, QScrollBar, QTableWidget, QHeaderView,
-                             QAbstractItemView, QTableWidgetItem, QDialog)
+from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QRadioButton, QTimeEdit,
+                             QVBoxLayout, QHBoxLayout, QMessageBox, QLabel, QTableWidget, QHeaderView,
+                             QAbstractItemView, QTableWidgetItem)
 from PyQt6.QtCore import QTimer, QTime
 
 
@@ -119,10 +119,14 @@ class TimeTracker(QWidget):
     def report(self):
         # Обновить время для текущего процесса
         self.current_process = None
-        self.processes["Общее время"] = self.total_time
 
-        print("Статистика отправлена в файл")
-        print("Статистика: ", self.processes)
+        with open("time_stats.txt", "w") as f:
+            f.write(f"Общее время: {self.total_time}\n\n")
+            f.write(f"Время в приложениях:\n")
+            for app, time in self.processes.items():
+                f.write(f"{{{app}: {str(datetime.timedelta(seconds=time))}}}\n")
+
+        message('Статистика успешно загружена', icon_path=None, title="Успешно")
 
     def start(self):
         self.set_mode()
@@ -176,7 +180,7 @@ class TimeTracker(QWidget):
 
     def add_time_stats(self, app_name):
         if app_name != self.current_process:
-            print(self.processes)
+            self.add_to_table()
         if app_name in self.processes:
             self.processes[app_name] += 1
         else:
@@ -192,12 +196,6 @@ class TimeTracker(QWidget):
         else:
             self.total_time += 1
         self.label_total_time.setText("Прошло времени: " + (time.strftime("%H:%M:%S", time.gmtime(self.total_time))))
-        self.add_to_table()
-
-    def show_popup(self):
-        self.popup = QDialog(self)
-        self.popup.setWindowTitle("Всплывающее окно")
-        self.popup.show()
 
 
 app = QApplication(sys.argv)
