@@ -7,6 +7,8 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QRadioButton, Q
 from PyQt6.QtCore import QTimer, QTime
 
 
+# TODO добавить общее время
+
 def message(text="", icon_path=None, title=""):
     msg = QMessageBox()
     if icon_path:
@@ -39,8 +41,8 @@ class TimeTracker(QWidget):
         self.pause_button = QPushButton('Пауза')
         self.stop_button = QPushButton('Стоп')
         self.report_button = QPushButton('Отчет')
-        self.all_time_radio = QRadioButton('All time')
-        self.timer_radio = QRadioButton('Timer')
+        self.all_time_radio = QRadioButton('Без лимита')
+        self.timer_radio = QRadioButton('С лимитом')
         self.time_edit = QTimeEdit()
         self.process_list = QListWidget()
         # кнопка паузы и таймер по умолчанию
@@ -68,6 +70,11 @@ class TimeTracker(QWidget):
         self.pause_button.clicked.connect(self.pause)
         self.stop_button.clicked.connect(self.stop)
         self.report_button.clicked.connect(self.report)
+        # сигналы и слоты для таймера и переключателя
+        self.all_time_radio.toggled.connect(self.set_mode)
+        self.timer_radio.toggled.connect(self.set_mode)
+        self.time_edit.timeChanged.connect(self.set_limit)
+        self.timer.timeout.connect(self.update)
         # макеты для размещения виджетов
         self.left_layout = QVBoxLayout()
         self.right_layout = QVBoxLayout()
@@ -88,6 +95,28 @@ class TimeTracker(QWidget):
         # Показываем окно
         self.show()
 
+    # Метод для обработки переключения режима работы
+    def set_mode(self):
+        # Получаем выбранный переключатель
+        radio = self.sender()
+        # Если он выбран, устанавливаем соответствующий режим
+        if radio.isChecked():
+            self.mode = radio.text()
+            # Если режим Timer, активируем таймер и устанавливаем лимит
+            if self.mode == 'С лимитом':
+                self.time_edit.setEnabled(True)
+                self.set_limit(self.time_edit.time())
+            # Если режим All time, деактивируем таймер и сбрасываем лимит
+            else:
+                self.time_edit.setEnabled(False)
+                self.limit = None
+        print(self.mode)
+
+    # Метод для установки лимита времени
+    def set_limit(self, time):
+        # Преобразуем время в секунды
+        self.limit = time.hour() * 3600 + time.minute() * 60 + time.second()
+
     def report(self):
         # Обновить время для текущего процесса
         self.current_process = None
@@ -96,6 +125,7 @@ class TimeTracker(QWidget):
         print("Статистика: ", self.processes)
 
     def start(self):
+        self.set_mode()
         message('Считывание процессов начато', icon_path=None, title="Успешно")
         self.timer.start(1000)
         self.pause_button.setEnabled(True)
@@ -153,6 +183,12 @@ class TimeTracker(QWidget):
         active_process = get_active_app_name()
         self.time_apps_list(active_process)
         self.current_process = get_active_app_name()
+        if self.mode == 'С лимитом' and self.total_time >= self.limit:
+            self.stop()
+        else:
+            self.total_time += 1
+        print(self.total_time)
+        print(self.limit)
 
 
 app = QApplication(sys.argv)
