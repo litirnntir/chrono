@@ -1,13 +1,12 @@
 import subprocess
 import sys
+import time
 
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QRadioButton, QTimeEdit, QListWidget,
-                             QVBoxLayout, QHBoxLayout, QMessageBox)
+                             QVBoxLayout, QHBoxLayout, QMessageBox, QLabel)
 from PyQt6.QtCore import QTimer, QTime
 
-
-# TODO добавить общее время
 
 def message(text="", icon_path=None, title=""):
     msg = QMessageBox()
@@ -36,6 +35,9 @@ class TimeTracker(QWidget):
         # заголовок, размер и положение окна
         self.setWindowTitle('Хронометраж работы')
         self.resize(400, 500)
+        # Общее время
+        self.label_total_time = QLabel("Прошло времени: 00:00:00")
+        self.label_total_time.setFixedSize(200, 20)
         # виджеты для кнопок, переключателей, таймера и списка
         self.start_button = QPushButton('Старт')
         self.pause_button = QPushButton('Пауза')
@@ -81,6 +83,7 @@ class TimeTracker(QWidget):
         self.right_layout = QVBoxLayout()
         self.main_layout = QHBoxLayout()
         # виджеты в макетах
+        self.left_layout.addWidget(self.label_total_time)
         self.left_layout.addWidget(self.start_button)
         self.left_layout.addWidget(self.pause_button)
         self.left_layout.addWidget(self.stop_button)
@@ -192,6 +195,7 @@ class TimeTracker(QWidget):
             self.stop()
         else:
             self.total_time += 1
+        self.label_total_time.setText("Прошло времени: " + (time.strftime("%H:%M:%S", time.gmtime(self.total_time))))
 
 
 app = QApplication(sys.argv)
