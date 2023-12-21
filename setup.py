@@ -1,4 +1,4 @@
-# python setup.py py2app -A
+# код для запуска: python setup.py py2app -A
 
 from setuptools import setup
 
@@ -11,7 +11,7 @@ OPTIONS = {
         'CFBundleDisplayName': APP_NAME,
         'CFBundleGetInfoString': 'Crono control',
     },
-    # 'iconfile': 'name.icns',
+    'iconfile': 'chrono.icns',
     'packages': ['PyQt6']
 }
 

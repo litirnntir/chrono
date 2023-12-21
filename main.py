@@ -32,7 +32,7 @@ class TimeTracker(QWidget):
     def __init__(self):
         super().__init__()
         # заголовок, размер и положение окна
-        self.setWindowTitle('Time Tracker')
+        self.setWindowTitle('Хронометраж работы')
         self.resize(400, 500)
         # виджеты для кнопок, переключателей, таймера и списка
         self.start_button = QPushButton('Старт')
@@ -89,6 +89,9 @@ class TimeTracker(QWidget):
         self.show()
 
     def report(self):
+        # Обновить время для текущего процесса
+        self.current_process = None
+
         print("Статистика отправлена в файл")
         print("Статистика: ", self.processes)
 
@@ -104,8 +107,8 @@ class TimeTracker(QWidget):
         self.pause_button.setEnabled(False)
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(True)
-        # TODO: Обновить время для текущего процесса
-        # self.update_time()
+        # Обновить время для текущего процесса
+        self.current_process = None
         # Останавливаем таймер
         self.timer.stop()
         # Запоминаем время паузы
@@ -119,16 +122,16 @@ class TimeTracker(QWidget):
         self.start_button.setEnabled(True)
         # Останавливаем таймер
         self.timer.stop()
-        # TODO: Обновить время для текущего процесса
-        # self.update_time()
+        # Обновить время для текущего процесса
+        self.current_process = None
 
         # Сбрасываем текущий процесс и время начала
         self.current_process = None
         self.start_time = None
         # Сбрасываем общее время
         self.total_time = 0
-        # TODO: Отправлять статистику в файл
-
+        # Отправляем статистику в файл
+        self.report()
         # Очищаем статистику
         self.processes = {}
         # self.wtrite_report()
