@@ -72,6 +72,7 @@ class TimeTracker(QWidget):
         self.report_button.clicked.connect(self.report)
         # сигналы и слоты для таймера и переключателя
         self.all_time_radio.toggled.connect(self.set_mode)
+        self.all_time_radio.setChecked(True)
         self.timer_radio.toggled.connect(self.set_mode)
         self.time_edit.timeChanged.connect(self.set_limit)
         self.timer.timeout.connect(self.update)
@@ -110,7 +111,6 @@ class TimeTracker(QWidget):
             else:
                 self.time_edit.setEnabled(False)
                 self.limit = None
-        print(self.mode)
 
     # Метод для установки лимита времени
     def set_limit(self, time):
@@ -126,6 +126,9 @@ class TimeTracker(QWidget):
 
     def start(self):
         self.set_mode()
+        self.timer_radio.setEnabled(False)
+        self.all_time_radio.setEnabled(False)
+        self.time_edit.setEnabled(False)
         message('Считывание процессов начато', icon_path=None, title="Успешно")
         self.timer.start(1000)
         self.pause_button.setEnabled(True)
@@ -187,8 +190,6 @@ class TimeTracker(QWidget):
             self.stop()
         else:
             self.total_time += 1
-        print(self.total_time)
-        print(self.limit)
 
 
 app = QApplication(sys.argv)
