@@ -3,10 +3,10 @@ import subprocess
 import sys
 import time
 
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QPalette, QBrush, QFontDatabase, QFont
 from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QRadioButton, QTimeEdit,
                              QVBoxLayout, QHBoxLayout, QMessageBox, QLabel, QTableWidget, QHeaderView,
-                             QAbstractItemView, QTableWidgetItem)
+                             QAbstractItemView, QTableWidgetItem, QFileDialog)
 from PyQt6.QtCore import QTimer, QTime
 
 
@@ -34,22 +34,46 @@ def get_active_app_name():
 class TimeTracker(QWidget):
     def __init__(self):
         super().__init__()
+
+        # установка шрифта для всех элементов
+        font = QFont("Point")
+        font.setPointSize(20)
+        self.setFont(font)
+        # Фон
+        background_image = "background.png"
+        pix = QPixmap(background_image)
+        pal = QPalette()
+        pal.setBrush(self.backgroundRole(), QBrush(pix))
+        self.setPalette(pal)
         # заголовок, размер и положение окна
-        self.setWindowTitle('Хронометраж работы')
-        self.setFixedSize(600, 600)
+        self.setWindowTitle('Хронометраж')
+        self.setFixedSize(800, 600)
         # Общее время
         self.label_total_time = QLabel("Прошло времени: 00:00:00")
-        self.label_total_time.setFixedSize(200, 20)
+        self.label_total_time.setStyleSheet("color: white; font-size: 22px")
+        self.label_total_time.setFixedSize(400, 30)
         # Путь до файла
         self.path_write = "stats.txt"
         # виджеты для кнопок, переключателей, таймера и списка
         self.start_button = QPushButton('Старт')
+        self.start_button.setFixedSize(350, 60)
         self.pause_button = QPushButton('Пауза')
+        self.pause_button.setFixedSize(350, 60)
         self.stop_button = QPushButton('Стоп')
+        self.stop_button.setFixedSize(350, 60)
+        self.path_button = QPushButton('Путь для отчета')
+        self.path_button.setFixedSize(350, 60)
         self.report_button = QPushButton('Отчет')
+        self.report_button.setEnabled(False)
+        self.report_button.setFixedSize(350, 60)
         self.all_time_radio = QRadioButton('Без лимита')
+        self.all_time_radio.setStyleSheet("color: white; font-size: 22px;")
+        self.all_time_radio.setFixedSize(350, 60)
         self.timer_radio = QRadioButton('С лимитом')
+        self.timer_radio.setStyleSheet("color: white; font-size: 22px;")
+        self.timer_radio.setFixedSize(350, 60)
         self.time_edit = QTimeEdit()
+        self.time_edit.setFixedSize(350, 40)
         self.process_table = QTableWidget()
         self.process_table.setColumnCount(2)
         self.process_table.setHorizontalHeaderLabels(["Приложение", "Время"])
@@ -74,7 +98,9 @@ class TimeTracker(QWidget):
         self.start_button.clicked.connect(self.start)
         self.pause_button.clicked.connect(self.pause)
         self.stop_button.clicked.connect(self.stop)
+        self.stop_button.setEnabled(False)
         self.report_button.clicked.connect(self.report)
+        self.path_button.clicked.connect(self.select_path)
         # сигналы и слоты для таймера и переключателя
         self.all_time_radio.toggled.connect(self.set_mode)
         self.all_time_radio.setChecked(True)
@@ -90,6 +116,7 @@ class TimeTracker(QWidget):
         self.left_layout.addWidget(self.start_button)
         self.left_layout.addWidget(self.pause_button)
         self.left_layout.addWidget(self.stop_button)
+        self.left_layout.addWidget(self.path_button)
         self.left_layout.addWidget(self.report_button)
         self.left_layout.addWidget(self.all_time_radio)
         self.left_layout.addWidget(self.timer_radio)
@@ -101,8 +128,20 @@ class TimeTracker(QWidget):
         self.setLayout(self.main_layout)
         self.show()
 
-        # Метод для обработки переключения режима работы
+    def select_path(self):
+        # создаем диалоговое окно для выбора папки
+        dialog = QFileDialog(self)
+        # устанавливаем заголовок и режим выбора папки
+        dialog.setWindowTitle('Выберите путь')
+        dialog.setFileMode(QFileDialog.FileMode.Directory)
+        # если пользователь нажал кнопку ОК, то получаем выбранный путь
+        if dialog.exec() == QFileDialog.DialogCode.Accepted:
+            path = dialog.selectedFiles()[0]
+            # обновляем метку с выбранным путем
+            self.path_write = path + "/stats.txt"
+            # здесь можно добавить код для загрузки отчета в выбранную папку
 
+    # Метод для обработки переключения режима работы
     def set_mode(self):
         radio = self.sender()
         if radio.isChecked():
@@ -132,6 +171,7 @@ class TimeTracker(QWidget):
 
     def start(self):
         self.set_mode()
+        self.report_button.setEnabled(True)
         self.timer_radio.setEnabled(False)
         self.all_time_radio.setEnabled(False)
         self.time_edit.setEnabled(False)
@@ -145,6 +185,7 @@ class TimeTracker(QWidget):
         self.pause_button.setEnabled(False)
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(True)
+        self.report_button.setEnabled(True)
         self.current_process = None
         self.timer.stop()
         self.pause_time = QTime.currentTime()
@@ -152,6 +193,7 @@ class TimeTracker(QWidget):
     # Метод для обработки нажатия на кнопку Стоп
     def stop(self):
         self.report()
+        self.report_button.setEnabled(False)
         self.timer_radio.setEnabled(True)
         self.all_time_radio.setEnabled(True)
         self.pause_button.setEnabled(False)
