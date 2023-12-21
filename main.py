@@ -1,8 +1,20 @@
 import subprocess
 import sys
+
+from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton, QRadioButton, QTimeEdit, QListWidget,
-                             QVBoxLayout, QHBoxLayout)
+                             QVBoxLayout, QHBoxLayout, QMessageBox)
 from PyQt6.QtCore import QTimer, QTime
+
+
+def message(text="", icon_path=None, title=""):
+    msg = QMessageBox()
+    if icon_path:
+        pixmap = QPixmap(icon_path)
+        msg.setIconPixmap(pixmap)
+    msg.setText(text)
+    msg.setWindowTitle(title)
+    msg.exec()
 
 
 def get_active_app_name():
@@ -54,6 +66,7 @@ class TimeTracker(QWidget):
         # сигналы и слоты для обработки событий
         self.start_button.clicked.connect(self.start)
         self.pause_button.clicked.connect(self.pause)
+        self.stop_button.clicked.connect(self.stop)
         # макеты для размещения виджетов
         self.left_layout = QVBoxLayout()
         self.right_layout = QVBoxLayout()
@@ -75,6 +88,7 @@ class TimeTracker(QWidget):
         self.show()
 
     def start(self):
+        message('Считывание процессов начато', icon_path=None, title="Успешно")
         self.timer.start(1000)
         self.pause_button.setEnabled(True)
         self.start_button.setEnabled(False)
@@ -83,10 +97,37 @@ class TimeTracker(QWidget):
         # Деактивируем кнопку паузы и активируем кнопку старт
         self.pause_button.setEnabled(False)
         self.start_button.setEnabled(True)
+        # TODO: Обновить время для текущего процесса
+        # self.update_time()
         # Останавливаем таймер
         self.timer.stop()
         # Запоминаем время паузы
         self.pause_time = QTime.currentTime()
+
+    # Метод для обработки нажатия на кнопку Стоп
+    def stop(self):
+        # Деактивируем кнопки паузы и стоп и активируем кнопку старт
+        self.pause_button.setEnabled(False)
+        self.stop_button.setEnabled(False)
+        self.start_button.setEnabled(True)
+        # Останавливаем таймер
+        self.timer.stop()
+        #TODO: Обновить время для текущего процесса
+        # self.update_time()
+
+        # Сбрасываем текущий процесс и время начала
+        self.current_process = None
+        self.start_time = None
+        # Сбрасываем общее время
+        self.total_time = 0
+        #TODO: Отправлять статистику в файл
+
+        # Очищаем статистику
+        self.processes = {}
+        # self.wtrite_report()
+
+        # Выводим сообщение о завершении считывания процессов
+        message('Считывание процессов завершено', icon_path=None, title="Успешно")
 
     def time_apps_list(self, app_name):
         if app_name != self.current_process:
