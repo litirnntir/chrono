@@ -47,25 +47,16 @@ class TimeTracker(QWidget):
         self.timer_radio = QRadioButton('С лимитом')
         self.time_edit = QTimeEdit()
         self.process_list = QListWidget()
-        # кнопка паузы и таймер по умолчанию
         self.pause_button.setEnabled(False)
         self.time_edit.setEnabled(False)
-        # таймер для отслеживания времени
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
-        # словарь для хранения процессов и времени
-        self.processes = {}
-        # переменная для хранения текущего процесса
+        self.processes = {}  # процессы и время
         self.current_process = None
-        # переменная для хранения времени начала процесса
         self.start_time = None
-        # переменная для хранения времени паузы
         self.pause_time = None
-        # переменная для хранения режима работы
         self.mode = 'All time'
-        # переменная для хранения лимита времени
         self.limit = None
-        # переменная для хранения общего времени
         self.total_time = 0
         # сигналы и слоты для обработки событий
         self.start_button.clicked.connect(self.start)
@@ -96,28 +87,22 @@ class TimeTracker(QWidget):
         self.main_layout.addLayout(self.right_layout)
         # главный макет для окна
         self.setLayout(self.main_layout)
-        # Показываем окно
         self.show()
 
     # Метод для обработки переключения режима работы
     def set_mode(self):
-        # Получаем выбранный переключатель
         radio = self.sender()
-        # Если он выбран, устанавливаем соответствующий режим
         if radio.isChecked():
             self.mode = radio.text()
-            # Если режим Timer, активируем таймер и устанавливаем лимит
             if self.mode == 'С лимитом':
                 self.time_edit.setEnabled(True)
                 self.set_limit(self.time_edit.time())
-            # Если режим All time, деактивируем таймер и сбрасываем лимит
             else:
                 self.time_edit.setEnabled(False)
                 self.limit = None
 
     # Метод для установки лимита времени
     def set_limit(self, time):
-        # Преобразуем время в секунды
         self.limit = time.hour() * 3600 + time.minute() * 60 + time.second()
 
     def report(self):
@@ -140,57 +125,44 @@ class TimeTracker(QWidget):
         self.stop_button.setEnabled(True)
 
     def pause(self):
-        # Деактивируем кнопку паузы и активируем кнопку старт
         self.pause_button.setEnabled(False)
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(True)
-        # Обновить время для текущего процесса
         self.current_process = None
-        # Останавливаем таймер
         self.timer.stop()
-        # Запоминаем время паузы
         self.pause_time = QTime.currentTime()
 
     # Метод для обработки нажатия на кнопку Стоп
     def stop(self):
         self.timer_radio.setEnabled(True)
         self.all_time_radio.setEnabled(True)
-        # Деактивируем кнопки паузы и стоп и активируем кнопку старт
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
         self.start_button.setEnabled(True)
-        # Останавливаем таймер
         self.timer.stop()
-        # Обновить время для текущего процесса
         self.current_process = None
-
-        # Сбрасываем текущий процесс и время начала
         self.current_process = None
         self.start_time = None
-        # Сбрасываем общее время
         self.total_time = 0
-        # Отправляем статистику в файл
         self.report()
-        # Очищаем статистику
         self.processes = {}
-        # self.wtrite_report()
 
         # Выводим сообщение о завершении считывания процессов
         message('Считывание процессов завершено', icon_path=None, title="Успешно")
 
-    def time_apps_list(self, app_name):
+    # Метод для обновления статистики
+    def add_time_stats(self, app_name):
         if app_name != self.current_process:
             print(self.processes)
-        # Если приложение уже есть в словаре, то увеличиваем его время на 1 секунду
         if app_name in self.processes:
             self.processes[app_name] += 1
-        # Иначе добавляем приложение в словарь с начальным временем 1 секунда
         else:
             self.processes[app_name] = 1
 
+    # Главный метод обработки
     def update(self):
         active_process = get_active_app_name()
-        self.time_apps_list(active_process)
+        self.add_time_stats(active_process)
         self.current_process = get_active_app_name()
         if self.mode == 'С лимитом' and self.total_time >= self.limit:
             self.stop()
